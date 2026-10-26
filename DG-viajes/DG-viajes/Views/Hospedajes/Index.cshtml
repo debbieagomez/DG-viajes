@@ -1,0 +1,200 @@
+@{
+    ViewData["Title"] = "Hospedajes";
+}
+
+<style>[v-cloak] { display: none; } .thumb { width: 96px; height: 72px; object-fit: cover; border-radius: 4px; }</style>
+
+@Html.AntiForgeryToken()
+
+<div id="app" v-cloak>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Hospedajes</h1>
+        <button class="btn btn-primary" v-on:click="nuevo">Nuevo hospedaje</button>
+    </div>
+
+    <div class="row g-2 mb-3">
+        <div class="col-md-4">
+            <input class="form-control" type="search" placeholder="Buscar por nombre, dirección o servicios" v-model="filtro.buscar">
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" v-model.number="filtro.destinoId">
+                <option value="">Todos los destinos</option>
+                <option v-for="d in destinos" v-bind:key="d.id" v-bind:value="d.id">{{ d.ciudad }}</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select" v-model.number="filtro.tipoId">
+                <option value="">Todos los tipos</option>
+                <option v-for="t in tipos" v-bind:key="t.id" v-bind:value="t.id">{{ t.nombre }}</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select class="form-select" v-model="filtro.estado">
+                <option value="">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+            </select>
+        </div>
+    </div>
+
+    <div v-if="mensaje" class="alert alert-success py-2" role="status">{{ mensaje }}</div>
+    <div v-if="errorListado" class="alert alert-danger py-2" role="alert">{{ errorListado }}</div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Foto</th><th>Nombre</th><th>Destino</th>
+                    <th class="text-end">Capacidad</th><th class="text-end">Precio por noche</th>
+                    <th>Estado</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="h in items" v-bind:key="h.id">
+                    <td><img class="thumb" v-bind:src="h.portada || sinFoto" v-on:error="$event.target.src = sinFoto" alt=""></td>
+                    <td>
+                        <div class="fw-semibold">{{ h.nombre }}</div>
+                        <div class="text-muted small">{{ h.tipo }}<span v-if="h.direccion">, {{ h.direccion }}</span></div>
+                    </td>
+                    <td>{{ h.destino }}</td>
+                    <td class="text-end">{{ h.capacidadMaxima }}</td>
+                    <td class="text-end">{{ moneda(h.precioNoche) }}</td>
+                    <td>
+                        <span class="badge" v-bind:class="h.activo ? 'text-bg-success' : 'text-bg-secondary'">
+                            {{ h.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <button class="btn btn-sm btn-outline-secondary" v-on:click="abrirFotos(h)">Fotos</button>
+                        <button class="btn btn-sm btn-outline-primary" v-on:click="editar(h)">Editar</button>
+                        <button class="btn btn-sm btn-outline-warning" v-on:click="cambiarActivo(h)">{{ h.activo ? 'Desactivar' : 'Activar' }}</button>
+                        <button class="btn btn-sm btn-outline-danger" v-on:click="eliminar(h)">Eliminar</button>
+                    </td>
+                </tr>
+                <tr v-if="!cargando && items.length === 0">
+                    <td colspan="7" class="text-center text-muted py-4">
+                        No hay hospedajes con esos filtros. Cambiá la búsqueda o creá uno nuevo.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Página {{ pagina }} de {{ totalPaginas }} ({{ total }} hospedajes)</span>
+        <div class="btn-group">
+            <button class="btn btn-outline-secondary" v-bind:disabled="pagina <= 1" v-on:click="irA(pagina - 1)">Anterior</button>
+            <button class="btn btn-outline-secondary" v-bind:disabled="pagina >= totalPaginas" v-on:click="irA(pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div v-if="form.abierto">
+        <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloForm">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="tituloForm">{{ form.datos.id ? 'Editar hospedaje' : 'Nuevo hospedaje' }}</h2>
+                        <button type="button" class="btn-close" aria-label="Cerrar" v-on:click="form.abierto = false"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="form.errores.length" class="alert alert-danger" role="alert">
+                            <div v-for="e in form.errores" v-bind:key="e">{{ e }}</div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label" for="f-nombre">Nombre</label>
+                                <input id="f-nombre" class="form-control" maxlength="120" v-model="form.datos.nombre">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="f-tipo">Tipo</label>
+                                <select id="f-tipo" class="form-select" v-model.number="form.datos.tipoId">
+                                    <option value="">Elegí un tipo</option>
+                                    <option v-for="t in tipos" v-bind:key="t.id" v-bind:value="t.id">{{ t.nombre }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="f-destino">Destino</label>
+                                <select id="f-destino" class="form-select" v-model.number="form.datos.destinoId">
+                                    <option value="">Elegí un destino</option>
+                                    <option v-for="d in destinosParaForm" v-bind:key="d.id" v-bind:value="d.id">{{ d.ciudad }}, {{ d.pais }}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="f-dir">Dirección</label>
+                                <input id="f-dir" class="form-control" maxlength="200" v-model="form.datos.direccion">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="f-cap">Capacidad máxima (personas)</label>
+                                <input id="f-cap" type="number" min="1" class="form-control" v-model.number="form.datos.capacidadMaxima">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="f-precio">Precio por noche</label>
+                                <input id="f-precio" type="number" min="0" step="0.01" class="form-control" v-model.number="form.datos.precioNoche">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="f-serv">Servicios</label>
+                                <textarea id="f-serv" class="form-control" rows="2" maxlength="500" v-model="form.datos.servicios"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary" v-on:click="form.abierto = false">Cancelar</button>
+                        <button class="btn btn-primary" v-bind:disabled="form.guardando" v-on:click="guardar">Guardar cambios</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop show"></div>
+    </div>
+
+    <!-- Fotos -->
+    <div v-if="panelFotos.abierto">
+        <div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tituloFotos">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="tituloFotos">Fotos de {{ panelFotos.hospedaje.nombre }}</h2>
+                        <button type="button" class="btn-close" aria-label="Cerrar" v-on:click="cerrarFotos"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div v-if="panelFotos.errores.length" class="alert alert-danger" role="alert">
+                            <div v-for="e in panelFotos.errores" v-bind:key="e">{{ e }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="f-fotos">Agregar fotos (JPG, PNG o WEBP, hasta 5 MB cada una)</label>
+                            <input id="f-fotos" type="file" class="form-control" multiple
+                                   accept="image/jpeg,image/png,image/webp" v-bind:disabled="panelFotos.subiendo"
+                                   v-on:change="subirFotos">
+                        </div>
+                        <p v-if="panelFotos.fotos.length === 0" class="text-muted">
+                            Este hospedaje todavía no tiene fotos. La primera que subas queda como portada.
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-6 col-md-4" v-for="f in panelFotos.fotos" v-bind:key="f.id">
+                                <div class="card h-100">
+                                    <img class="card-img-top" style="height:140px;object-fit:cover"
+                                         v-bind:src="f.archivo" v-on:error="$event.target.src = sinFoto" alt="">
+                                    <div class="card-body p-2 d-flex flex-column gap-1">
+                                        <span v-if="f.esPortada" class="badge text-bg-primary align-self-start">Portada</span>
+                                        <button v-else class="btn btn-sm btn-outline-primary" v-on:click="hacerPortada(f)">Usar como portada</button>
+                                        <button class="btn btn-sm btn-outline-danger" v-on:click="borrarFoto(f)">Eliminar foto</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary" v-on:click="cerrarFotos">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop show"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+    <script src="~/js/hospedajes.js" asp-append-version="true"></script>
+}
