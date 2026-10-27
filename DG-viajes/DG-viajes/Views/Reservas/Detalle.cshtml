@@ -1,0 +1,96 @@
+@model DG_viajes.ViewModels.ReservaDetalle
+@using System.Globalization
+@{
+    ViewData["Title"] = "Reserva " + Model.Reserva.Id;
+    var es = new CultureInfo("es-AR");
+    var estado = Model.Reserva.Estado;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">
+        Reserva @Model.Reserva.Id
+        <span class="badge ms-2 @(estado == "Confirmada" ? "text-bg-success" : estado == "Pendiente" ? "text-bg-warning" : "text-bg-secondary")">@estado</span>
+    </h1>
+    <a class="btn btn-outline-secondary" asp-action="Index">Volver al listado</a>
+</div>
+
+@if (TempData["Mensaje"] is string mensaje)
+{
+    <div class="alert alert-success py-2" role="status">@mensaje</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2" role="alert">@error</div>
+}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-6">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h5">Titular</h2>
+            <div class="fw-semibold">@Model.ClienteNombre</div>
+            <div>DNI @Model.ClienteDni</div>
+            @if (!string.IsNullOrEmpty(Model.ClienteEmail)) { <div>@Model.ClienteEmail</div> }
+            @if (!string.IsNullOrEmpty(Model.ClienteTelefono)) { <div>@Model.ClienteTelefono</div> }
+        </div></div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h5">Viaje</h2>
+            <div class="fw-semibold">@Model.Paquete</div>
+            <div>@Model.Destino, del @Model.FechaSalida.ToString("dd/MM/yyyy") al @Model.FechaRegreso.ToString("dd/MM/yyyy")</div>
+            <div>Hospedaje: @Model.Hospedaje (@Model.TipoHospedaje)</div>
+            <div>Reservado el @Model.Reserva.FechaReserva.ToString("dd/MM/yyyy")</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="card mb-3"><div class="card-body">
+    <h2 class="h5">Importe</h2>
+    <div class="row">
+        <div class="col-md-4">Total (congelado al reservar)<div class="fs-5">@Model.Reserva.PrecioTotal.ToString("C0", es)</div></div>
+        <div class="col-md-4">Pagado<div class="fs-5">@Model.Pagado.ToString("C0", es)</div></div>
+        <div class="col-md-4">Saldo pendiente<div class="fs-5">@(estado == "Cancelada" ? "—" : Model.Saldo.ToString("C0", es))</div></div>
+    </div>
+</div></div>
+
+<div class="card mb-3"><div class="card-body">
+    <h2 class="h5">Pasajeros (@Model.Reserva.CantPasajeros)</h2>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead><tr><th>Apellido y nombre</th><th>DNI</th><th>Teléfono</th><th></th></tr></thead>
+            <tbody>
+                <tr><td>@Model.ClienteNombre</td><td>@Model.ClienteDni</td><td>@Model.ClienteTelefono</td><td>Titular</td></tr>
+                @foreach (var a in Model.Acompanantes)
+                {
+                    <tr><td>@a.Apellido, @a.Nombre</td><td>@a.Dni</td><td>@a.Telefono</td><td>Acompañante</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div></div>
+
+@* TODO: mostrar la auditoría solo a administradores cuando exista el login. *@
+<div class="card mb-3"><div class="card-body">
+    <h2 class="h5">Auditoría</h2>
+    <div>Creada por @Model.CreadoPor el @Model.Reserva.CreadoEn.ToString("dd/MM/yyyy HH:mm")</div>
+    @if (Model.Reserva.ModificadoEn.HasValue)
+    {
+        <div>Última modificación por @Model.ModificadoPor el @Model.Reserva.ModificadoEn.Value.ToString("dd/MM/yyyy HH:mm")</div>
+    }
+</div></div>
+
+<div class="d-flex gap-2">
+    @if (estado == "Pendiente")
+    {
+        <form method="post" asp-action="Confirmar" asp-route-id="@Model.Reserva.Id">
+            <button class="btn btn-success" type="submit">Confirmar reserva</button>
+        </form>
+    }
+    @if (estado != "Cancelada")
+    {
+        <form method="post" asp-action="Cancelar" asp-route-id="@Model.Reserva.Id"
+              onsubmit="return confirm('¿Cancelar esta reserva? Se liberan las plazas y no se puede revertir.');">
+            <button class="btn btn-outline-danger" type="submit">Cancelar reserva</button>
+        </form>
+    }
+</div>

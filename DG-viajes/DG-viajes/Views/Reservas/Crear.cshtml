@@ -1,0 +1,95 @@
+@{
+    ViewData["Title"] = "Nueva reserva";
+}
+
+<style>[v-cloak] { display: none; }</style>
+
+@Html.AntiForgeryToken()
+
+<div id="app" v-cloak style="max-width: 900px">
+    <h1 class="h3 mb-3">Nueva reserva</h1>
+
+    <div v-if="errores.length" class="alert alert-danger" role="alert">
+        <div v-for="e in errores" v-bind:key="e">{{ e }}</div>
+    </div>
+
+    <section class="mb-4">
+        <h2 class="h5">Cliente</h2>
+        <buscador url="/Reservas/BuscarClientes" v-model="cliente" input-id="buscaCliente"
+                  placeholder="Buscar por DNI, nombre o apellido">
+            <template v-slot:opcion="{ o }"><strong>{{ o.apellido }}, {{ o.nombre }}</strong> <span class="text-muted">DNI {{ o.dni }}</span></template>
+            <template v-slot:elegido="{ o }"><strong>{{ o.apellido }}, {{ o.nombre }}</strong><div class="text-muted small">DNI {{ o.dni }}</div></template>
+        </buscador>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h5">Paquete</h2>
+        <buscador url="/Reservas/BuscarPaquetes" v-model="paquete" input-id="buscaPaquete"
+                  placeholder="Buscar por nombre o destino">
+            <template v-slot:opcion="{ o }">
+                <strong>{{ o.nombre }}</strong> <span class="text-muted">{{ o.destino }}, {{ fecha(o.fechaSalida) }} al {{ fecha(o.fechaRegreso) }}, quedan {{ o.plazasLibres }} plazas</span>
+            </template>
+            <template v-slot:elegido="{ o }">
+                <strong>{{ o.nombre }}</strong>
+                <div class="text-muted small">{{ o.destino }}, del {{ fecha(o.fechaSalida) }} al {{ fecha(o.fechaRegreso) }} ({{ o.noches }} noches)</div>
+                <div class="small">{{ moneda(o.precioPersona) }} por persona, quedan {{ o.plazasLibres }} plazas</div>
+            </template>
+        </buscador>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h5">Hospedaje</h2>
+        <p v-if="!paquete" class="text-muted">Elegí primero un paquete: solo se ofrecen los hospedajes de su destino.</p>
+        <buscador v-else v-bind:key="paquete.id" url="/Reservas/BuscarHospedajes" v-bind:params="{ paqueteId: paquete.id }"
+                  v-model="hospedaje" input-id="buscaHospedaje" placeholder="Buscar hospedaje de @@destino">
+            <template v-slot:opcion="{ o }">
+                <strong>{{ o.nombre }}</strong> <span class="text-muted">{{ o.tipo }}, {{ moneda(o.precioNoche) }} por noche, lugar para {{ o.lugaresLibres }}</span>
+            </template>
+            <template v-slot:elegido="{ o }">
+                <strong>{{ o.nombre }}</strong> <span class="text-muted">({{ o.tipo }})</span>
+                <div class="small">{{ moneda(o.precioNoche) }} por noche, lugar libre para {{ o.lugaresLibres }} personas en esas fechas</div>
+            </template>
+        </buscador>
+    </section>
+
+    <section class="mb-4">
+        <h2 class="h5">Pasajeros</h2>
+        <div class="mb-3" style="max-width: 260px">
+            <label class="form-label" for="cant">Cantidad de pasajeros (con el titular)</label>
+            <input id="cant" type="number" class="form-control" min="1" v-bind:max="maxPasajeros"
+                   v-model.number.lazy="cantPasajeros" v-bind:disabled="!hospedaje">
+            <div class="form-text" v-if="hospedaje">Máximo posible: {{ maxPasajeros }}</div>
+            <div class="form-text" v-else>Elegí el hospedaje para definir los pasajeros.</div>
+        </div>
+
+        <div v-for="(a, i) in acompanantes" v-bind:key="i" class="row g-2 mb-2">
+            <div class="col-12 fw-semibold">Acompañante {{ i + 1 }}</div>
+            <div class="col-md-3"><input class="form-control" placeholder="DNI" inputmode="numeric" maxlength="15" v-model="a.dni" v-bind:aria-label="'DNI del acompañante ' + (i + 1)"></div>
+            <div class="col-md-3"><input class="form-control" placeholder="Nombre" maxlength="100" v-model="a.nombre" v-bind:aria-label="'Nombre del acompañante ' + (i + 1)"></div>
+            <div class="col-md-3"><input class="form-control" placeholder="Apellido" maxlength="100" v-model="a.apellido" v-bind:aria-label="'Apellido del acompañante ' + (i + 1)"></div>
+            <div class="col-md-3"><input class="form-control" placeholder="Teléfono (opcional)" maxlength="30" v-model="a.telefono" v-bind:aria-label="'Teléfono del acompañante ' + (i + 1)"></div>
+        </div>
+    </section>
+
+    <section class="mb-4" v-if="paquete && hospedaje">
+        <h2 class="h5">Importe</h2>
+        <table class="table table-sm" style="max-width: 560px">
+            <tbody>
+                <tr><td>Paquete: {{ moneda(paquete.precioPersona) }} x {{ cantPasajeros }} pasajeros</td><td class="text-end">{{ moneda(totalPaquete) }}</td></tr>
+                <tr><td>Hospedaje: {{ moneda(hospedaje.precioNoche) }} x {{ paquete.noches }} noches</td><td class="text-end">{{ moneda(totalHospedaje) }}</td></tr>
+                <tr class="fw-bold"><td>Total</td><td class="text-end">{{ moneda(total) }}</td></tr>
+            </tbody>
+        </table>
+        <div class="form-text">El importe se calcula de nuevo al guardar y queda fijo aunque cambien los precios.</div>
+    </section>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary" v-bind:disabled="guardando || !listo" v-on:click="guardar">Crear reserva</button>
+        <a class="btn btn-outline-secondary" href="/Reservas">Cancelar</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+    <script src="~/js/reservas.js" asp-append-version="true"></script>
+}

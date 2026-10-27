@@ -1,0 +1,107 @@
+@model DG_viajes.ViewModels.ReservaIndexVm
+@using System.Globalization
+@{
+    ViewData["Title"] = "Reservas";
+    var es = new CultureInfo("es-AR");
+    var f = Model.Filtro;
+    var r = Model.Resultado;
+    int totalPaginas = Math.Max(1, (int)Math.Ceiling(r.Total / (double)r.Tamanio));
+
+    Dictionary<string, string> Ruta(int pag)
+    {
+        var d = new Dictionary<string, string> { ["pagina"] = pag.ToString() };
+        if (!string.IsNullOrWhiteSpace(f.Buscar)) d["buscar"] = f.Buscar;
+        if (!string.IsNullOrEmpty(f.Estado)) d["estado"] = f.Estado;
+        return d;
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Reservas</h1>
+    <a class="btn btn-primary" asp-action="Crear">Nueva reserva</a>
+</div>
+
+@if (TempData["Mensaje"] is string mensaje)
+{
+    <div class="alert alert-success py-2" role="status">@mensaje</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2" role="alert">@error</div>
+}
+
+<form method="get" asp-action="Index" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-6">
+        <label class="form-label" for="buscar">Cliente</label>
+        <input class="form-control" id="buscar" name="buscar" placeholder="DNI, nombre o apellido" value="@f.Buscar">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="estado">Estado</label>
+        <select class="form-select" id="estado" name="estado">
+            <option value="">Todos</option>
+            <option value="Pendiente" selected="@(f.Estado == "Pendiente")">Pendiente</option>
+            <option value="Confirmada" selected="@(f.Estado == "Confirmada")">Confirmada</option>
+            <option value="Cancelada" selected="@(f.Estado == "Cancelada")">Cancelada</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Limpiar filtros</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>N°</th><th>Cliente</th><th>Paquete</th><th>Hospedaje</th>
+                <th class="text-end">Pasajeros</th><th class="text-end">Importe</th>
+                <th class="text-end">Saldo</th><th>Estado</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var x in r.Items)
+            {
+                <tr>
+                    <td>@x.Id</td>
+                    <td>@x.Cliente<div class="text-muted small">DNI @x.Dni</div></td>
+                    <td>@x.Paquete<div class="text-muted small">@x.Destino</div></td>
+                    <td>@x.Hospedaje</td>
+                    <td class="text-end">@x.CantPasajeros</td>
+                    <td class="text-end">@x.PrecioTotal.ToString("C0", es)</td>
+                    <td class="text-end">@(x.Estado == "Cancelada" ? "—" : x.Saldo.ToString("C0", es))</td>
+                    <td>
+                        <span class="badge @(x.Estado == "Confirmada" ? "text-bg-success" : x.Estado == "Pendiente" ? "text-bg-warning" : "text-bg-secondary")">@x.Estado</span>
+                    </td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="Detalle" asp-route-id="@x.Id">Ver</a></td>
+                </tr>
+            }
+            @if (r.Items.Count == 0)
+            {
+                <tr><td colspan="9" class="text-center text-muted py-4">No hay reservas con esos filtros. Cambiá la búsqueda o creá una nueva.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+    <span class="text-muted small">Página @r.Pagina de @totalPaginas (@r.Total reservas)</span>
+    <div class="btn-group">
+        @if (r.Pagina > 1)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-all-route-data="Ruta(r.Pagina - 1)">Anterior</a>
+        }
+        else
+        {
+            <span class="btn btn-outline-secondary disabled">Anterior</span>
+        }
+        @if (r.Pagina < totalPaginas)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-all-route-data="Ruta(r.Pagina + 1)">Siguiente</a>
+        }
+        else
+        {
+            <span class="btn btn-outline-secondary disabled">Siguiente</span>
+        }
+    </div>
+</div>
