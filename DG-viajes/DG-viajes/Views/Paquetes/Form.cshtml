@@ -1,0 +1,81 @@
+@model DG_viajes.Models.Paquete
+@{
+    bool esNuevo = Model.Id == 0;
+    ViewData["Title"] = esNuevo ? "Nuevo paquete" : "Editar paquete";
+    var destinos = (List<DG_viajes.Models.Destino>)ViewBag.Destinos;
+    int ocupadas = (int)ViewBag.Ocupadas;
+    bool tieneReservas = (bool)ViewBag.TieneReservas;
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger" role="alert">
+        @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@e.ErrorMessage</div>
+        }
+    </div>
+}
+
+@if (!esNuevo && tieneReservas)
+{
+    <div class="alert alert-info py-2" role="status">
+        Este paquete tiene reservas (@ocupadas plazas ocupadas). No se puede cambiar el destino
+        ni reducir las plazas por debajo de las ocupadas.
+    </div>
+}
+
+<form method="post" asp-action="@(esNuevo ? "Crear" : "Editar")" class="row g-3" style="max-width: 800px">
+    <input type="hidden" name="Id" value="@Model.Id">
+
+    <div class="col-md-8">
+        <label class="form-label" for="Nombre">Nombre</label>
+        <input class="form-control" id="Nombre" name="Nombre" maxlength="120" value="@Model.Nombre">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="DestinoId">Destino</label>
+        <select class="form-select" id="DestinoId" name="DestinoId">
+            <option value="0">Elegí un destino</option>
+            @foreach (var d in destinos.Where(d => d.Activo || d.Id == Model.DestinoId))
+            {
+                <option value="@d.Id" selected="@(d.Id == Model.DestinoId)">@d.Ciudad, @d.Pais</option>
+            }
+        </select>
+    </div>
+    <div class="col-12">
+        <label class="form-label" for="Descripcion">Descripción</label>
+        <textarea class="form-control" id="Descripcion" name="Descripcion" rows="3">@Model.Descripcion</textarea>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="PrecioPersona">Precio por persona (pesos)</label>
+        <input class="form-control" type="number" min="1" step="1" id="PrecioPersona" name="PrecioPersona"
+               value="@(Model.PrecioPersona > 0 ? decimal.Truncate(Model.PrecioPersona).ToString("0") : "")">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="FechaSalida">Fecha de salida</label>
+        <input class="form-control" type="date" id="FechaSalida" name="FechaSalida"
+               value="@(Model.FechaSalida == default ? "" : Model.FechaSalida.ToString("yyyy-MM-dd"))">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="FechaRegreso">Fecha de regreso</label>
+        <input class="form-control" type="date" id="FechaRegreso" name="FechaRegreso"
+               value="@(Model.FechaRegreso == default ? "" : Model.FechaRegreso.ToString("yyyy-MM-dd"))">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="PlazasTotales">Plazas totales</label>
+        <input class="form-control" type="number" min="1" step="1" id="PlazasTotales" name="PlazasTotales" value="@Model.PlazasTotales">
+    </div>
+    <div class="col-md-8 d-flex align-items-end">
+        <div class="form-check">
+            <input asp-for="IncluyeTransporte" class="form-check-input">
+            <label class="form-check-label" asp-for="IncluyeTransporte">Incluye transporte (el costo ya va en el precio por persona)</label>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">Guardar cambios</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+    </div>
+</form>

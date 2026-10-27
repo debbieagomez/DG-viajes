@@ -1,0 +1,160 @@
+@model DG_viajes.ViewModels.PaqueteIndexVm
+@using System.Globalization
+@{
+    ViewData["Title"] = "Paquetes";
+    var es = new CultureInfo("es-AR");
+    var f = Model.Filtro;
+    var r = Model.Resultado;
+    int totalPaginas = Math.Max(1, (int)Math.Ceiling(r.Total / (double)r.Tamanio));
+    string volver = Context.Request.QueryString.Value ?? "";
+
+    // Mantiene los filtros al cambiar de página.
+    Dictionary<string, string> Ruta(int pag)
+    {
+        var d = new Dictionary<string, string> { ["pagina"] = pag.ToString() };
+        if (f.DestinoId.HasValue) d["destinoId"] = f.DestinoId.Value.ToString();
+        if (f.PrecioMin.HasValue) d["precioMin"] = f.PrecioMin.Value.ToString();
+        if (f.PrecioMax.HasValue) d["precioMax"] = f.PrecioMax.Value.ToString();
+        if (f.SalidaDesde.HasValue) d["salidaDesde"] = f.SalidaDesde.Value.ToString("yyyy-MM-dd");
+        if (f.SalidaHasta.HasValue) d["salidaHasta"] = f.SalidaHasta.Value.ToString("yyyy-MM-dd");
+        if (!string.IsNullOrEmpty(f.Estado)) d["estado"] = f.Estado;
+        return d;
+    }
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Paquetes</h1>
+    <a class="btn btn-primary" asp-action="Crear">Nuevo paquete</a>
+</div>
+
+@if (TempData["Mensaje"] is string mensaje)
+{
+    <div class="alert alert-success py-2" role="status">@mensaje</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger py-2" role="alert">@error</div>
+}
+
+<form method="get" asp-action="Index" class="row g-2 mb-3 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label" for="destinoId">Destino</label>
+        <select class="form-select" id="destinoId" name="destinoId">
+            <option value="">Todos</option>
+            @foreach (var d in Model.Destinos)
+            {
+                <option value="@d.Id" selected="@(f.DestinoId == d.Id)">@d.Ciudad</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label class="form-label" for="precioMin">Precio desde</label>
+        <input class="form-control" type="number" min="0" step="1" id="precioMin" name="precioMin" value="@f.PrecioMin">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label" for="precioMax">Precio hasta</label>
+        <input class="form-control" type="number" min="0" step="1" id="precioMax" name="precioMax" value="@f.PrecioMax">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label" for="salidaDesde">Sale desde</label>
+        <input class="form-control" type="date" id="salidaDesde" name="salidaDesde" value="@f.SalidaDesde?.ToString("yyyy-MM-dd")">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label" for="salidaHasta">Sale hasta</label>
+        <input class="form-control" type="date" id="salidaHasta" name="salidaHasta" value="@f.SalidaHasta?.ToString("yyyy-MM-dd")">
+    </div>
+    <div class="col-md-1">
+        <label class="form-label" for="estado">Estado</label>
+        <select class="form-select" id="estado" name="estado">
+            <option value="">Todos</option>
+            <option value="Disponible" selected="@(f.Estado == "Disponible")">Disponible</option>
+            <option value="Suspendido" selected="@(f.Estado == "Suspendido")">Suspendido</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-outline-primary" type="submit">Filtrar</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Limpiar filtros</a>
+    </div>
+</form>
+
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+            <tr>
+                <th>Paquete</th><th>Destino</th><th>Fechas</th>
+                <th class="text-end">Precio por persona</th><th class="text-end">Plazas libres</th>
+                <th>Transporte</th><th>Estado</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in r.Items)
+            {
+                <tr>
+                    <td class="fw-semibold">@p.Nombre</td>
+                    <td>@p.Destino</td>
+                    <td class="text-nowrap">@p.FechaSalida.ToString("dd/MM/yyyy") al @p.FechaRegreso.ToString("dd/MM/yyyy")</td>
+                    <td class="text-end">@p.PrecioPersona.ToString("C0", es)</td>
+                    <td class="text-end">
+                        @if (p.PlazasDisponibles <= 0)
+                        {
+                            <span class="badge text-bg-danger">Completo</span>
+                        }
+                        else
+                        {
+                            @($"{p.PlazasDisponibles} de {p.PlazasTotales}")
+                        }
+                    </td>
+                    <td>@(p.IncluyeTransporte ? "Incluido" : "No incluido")</td>
+                    <td>
+                        <span class="badge @(p.Estado == "Disponible" ? "text-bg-success" : "text-bg-secondary")">@p.Estado</span>
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Editar" asp-route-id="@p.Id">Editar</a>
+                        <form method="post" asp-action="CambiarEstado" class="d-inline">
+                            <input type="hidden" name="id" value="@p.Id">
+                            <input type="hidden" name="estado" value="@(p.Estado == "Disponible" ? "Suspendido" : "Disponible")">
+                            <input type="hidden" name="volver" value="@volver">
+                            <button class="btn btn-sm btn-outline-warning" type="submit">@(p.Estado == "Disponible" ? "Suspender" : "Reactivar")</button>
+                        </form>
+                        <form method="post" asp-action="Eliminar" class="d-inline"
+                              onsubmit="return confirm('¿Eliminar este paquete? Esta acción no se puede deshacer.');">
+                            <input type="hidden" name="id" value="@p.Id">
+                            <input type="hidden" name="volver" value="@volver">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (r.Items.Count == 0)
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                        No hay paquetes con esos filtros. Cambiá los filtros o creá uno nuevo.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+    <span class="text-muted small">Página @r.Pagina de @totalPaginas (@r.Total paquetes)</span>
+    <div class="btn-group">
+        @if (r.Pagina > 1)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-all-route-data="Ruta(r.Pagina - 1)">Anterior</a>
+        }
+        else
+        {
+            <span class="btn btn-outline-secondary disabled">Anterior</span>
+        }
+        @if (r.Pagina < totalPaginas)
+        {
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-all-route-data="Ruta(r.Pagina + 1)">Siguiente</a>
+        }
+        else
+        {
+            <span class="btn btn-outline-secondary disabled">Siguiente</span>
+        }
+    </div>
+</div>
