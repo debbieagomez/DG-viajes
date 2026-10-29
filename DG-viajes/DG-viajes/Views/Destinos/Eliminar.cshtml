@@ -1,0 +1,19 @@
+@model DG_viajes.Models.Destino
+
+<h2>Desactivar destino</h2>
+
+<div class="alert alert-warning">
+    ¿Seguro que querés desactivar este destino? No se borra: deja de aparecer al armar paquetes nuevos.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">País</dt>       <dd class="col-sm-9">@Model.Pais</dd>
+    <dt class="col-sm-3">Provincia</dt>  <dd class="col-sm-9">@Model.Provincia</dd>
+    <dt class="col-sm-3">Ciudad</dt>     <dd class="col-sm-9">@Model.Ciudad</dd>
+</dl>
+
+<form asp-action="EliminarConfirmado" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Desactivar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

@@ -6,7 +6,7 @@ using MySqlConnector;
 namespace DG_viajes.Controllers;
 
 // [Authorize]   // ← activar cuando esté el login
-public abstract class ABMController<T> : Controller
+public abstract class ABMController<T> : Controller where T : new()
 {
     protected readonly IRepositorio<T> repositorio;
 
@@ -58,7 +58,7 @@ public abstract class ABMController<T> : Controller
     [HttpGet]
     public virtual IActionResult Crear()
     {
-        return View();
+        return View(new T());
     }
 
     // CREAR: recibe el formulario completado y guarda

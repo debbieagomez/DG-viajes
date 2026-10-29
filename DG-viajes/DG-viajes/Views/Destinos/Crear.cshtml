@@ -1,0 +1,28 @@
+@model   DG_viajes.Models.Destino
+
+<h2>Crear Destino</h2>
+
+<form asp-action="Crear" method="post">
+    <div class="mb-3">
+        <label asp-for="Pais"></label>
+        <input asp-for="Pais" class="form-control" />
+        <span asp-validation-for="Pais" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Provincia"></label>
+        <input asp-for="Provincia" class="form-control" />
+    </div>
+      <div class="mb-3">
+        <label asp-for="Ciudad"></label>
+        <input asp-for="Ciudad" class="form-control" />
+    </div>
+     <textarea asp-for="Descripcion" class="form-control" rows="3">
+
+     </textarea>
+    <div class="form-check mb-3">
+      <input asp-for="Activo" class="form-check-input" />
+      <label asp-for="Activo" class="form-check-label"></label>
+  </div>
+
+    <button type="submit" class="btn btn-primary">Guardar</button>
+</form>
