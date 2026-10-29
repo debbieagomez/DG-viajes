@@ -2,6 +2,11 @@ using DG_viajes.Repositories;
 using DG_viajes.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
+using System.Text;
+using DG_viajes.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +25,12 @@ builder.Services.AddScoped<IRepositorioUsuario>(
 
 builder.Services.AddScoped<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
 
-//login con cookies
+//clave del JWT (Web API)
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey) || jwtKey.Length < 32)
+    throw new InvalidOperationException("Falta Jwt:Key (32 caracteres o más). Cargala con dotnet user-secrets.");
+
+//login con cookies (web) y JWT (API)
 
 
     builder.Services
@@ -36,7 +46,21 @@ builder.Services.AddScoped<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
         options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 
         options.SlidingExpiration = true;
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o =>
+    {
+        o.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true, ValidIssuer = JwtConfig.Issuer,
+            ValidateAudience = true, ValidAudience = JwtConfig.Audience,
+            ValidateLifetime = true, ClockSkew = TimeSpan.FromMinutes(1),
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.NameIdentifier
+        };
     });
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
