@@ -1,4 +1,7 @@
 using DG_viajes.Repositories;
+using DG_viajes.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,23 +10,49 @@ builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 
+//repositorios
 builder.Services.AddScoped<IRepositorioDestino>(
     provider => new RepositorioDestino(connectionString!));
+builder.Services.AddScoped<IRepositorioUsuario>(
+    provider => new RepositorioUsuario(connectionString!));
+
+//contrasenas
+
+builder.Services.AddScoped<IPasswordHasher<Usuario>, PasswordHasher<Usuario>>();
+
+//login con cookies
+
+
+    builder.Services
+    .AddAuthentication(
+        CookieAuthenticationDefaults.AuthenticationScheme
+    )
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Cuenta/Login";
+        options.LogoutPath = "/Cuenta/Logout";
+        options.AccessDeniedPath = "/Cuenta/AccesoDenegado";
+
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+
+        options.SlidingExpiration = true;
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthorization();
+app.UseAuthentication(); //quien sos?
+app.UseAuthorization(); //que podes hacer?
 
 app.MapStaticAssets();
 
