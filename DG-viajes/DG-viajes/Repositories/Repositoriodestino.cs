@@ -89,7 +89,7 @@ public class RepositorioDestino : IRepositorioDestino
         using var conexion = new MySqlConnection(connectionString);
         conexion.Open();
 
-        var sql = @"SELECT id, pais, provincia, ciudad, descripcion, activo FROM destino WHERE @busqueda IS NULL OR @busqueda = '' OR ciudad LIKE OR pais LIKE @busqueda ORDER BY pais, ciudad LIMIT @tamPagina OFFSET @offset; ";
+    var sql = @"SELECT id, pais, provincia, ciudad, descripcion, activo FROM destino WHERE @busqueda IS NULL OR @busqueda = '' OR ciudad LIKE @busqueda OR pais LIKE @busqueda ORDER BY pais, ciudad LIMIT @tamPagina OFFSET @offset;";
        using var comando = new MySqlCommand(sql, conexion);
 
        comando.Parameters.AddWithValue("@tamPagina", tamPagina);
