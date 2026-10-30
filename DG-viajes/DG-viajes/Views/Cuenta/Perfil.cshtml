@@ -1,0 +1,65 @@
+@model DG_viajes.Models.Usuario
+@{
+    ViewData["Title"] = "Mi perfil";
+}
+
+<h2 class="mt-4 mb-4">Mi perfil</h2>
+
+@if (TempData["Mensaje"] is string mensaje)
+{
+    <div class="alert alert-success">@mensaje</div>
+}
+
+<form asp-action="Perfil" method="post" enctype="multipart/form-data">
+
+    <div class="mb-4 d-flex align-items-center gap-3">
+        @if (!string.IsNullOrEmpty(Model.Avatar))
+        {
+            <img src="@Model.Avatar" alt="Avatar" width="96" height="96" class="rounded-circle" style="object-fit:cover" />
+        }
+        <div>
+            <label for="avatar" class="form-label">Foto de perfil (JPG o PNG, máximo 2 MB)</label>
+            <input type="file" id="avatar" name="avatar" class="form-control" accept=".jpg,.jpeg,.png" />
+            <span asp-validation-for="Avatar" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input value="@Model.Email" class="form-control" disabled />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Nombre" class="form-label">Nombre</label>
+        <input asp-for="Nombre" class="form-control" />
+        <span asp-validation-for="Nombre" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Apellido" class="form-label">Apellido</label>
+        <input asp-for="Apellido" class="form-control" />
+        <span asp-validation-for="Apellido" class="text-danger"></span>
+    </div>
+
+    <h5 class="mt-4">Cambiar contraseña <small class="text-muted">(opcional)</small></h5>
+
+    <div class="mb-3">
+        <label for="passwordActual" class="form-label">Contraseña actual</label>
+        <input type="password" id="passwordActual" name="passwordActual" class="form-control" />
+        <span class="text-danger">@Html.ValidationMessage("PasswordActual")</span>
+    </div>
+
+    <div class="mb-3">
+        <label for="passwordNueva" class="form-label">Contraseña nueva</label>
+        <input type="password" id="passwordNueva" name="passwordNueva" class="form-control" />
+        <span class="text-danger">@Html.ValidationMessage("PasswordNueva")</span>
+    </div>
+
+    <div class="mb-3">
+        <label for="confirmarPassword" class="form-label">Repetir contraseña nueva</label>
+        <input type="password" id="confirmarPassword" name="confirmarPassword" class="form-control" />
+        <span class="text-danger">@Html.ValidationMessage("ConfirmarPassword")</span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+</form>
