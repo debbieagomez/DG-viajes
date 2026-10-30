@@ -1,0 +1,9 @@
+@{
+    ViewData["Title"] = "Acceso denegado";
+}
+
+<div class="alert alert-warning mt-4">
+    <h4>No tenés permiso para esta acción</h4>
+    <p class="mb-0">Esta funcionalidad es exclusiva del administrador.</p>
+</div>
+<a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver al inicio</a>

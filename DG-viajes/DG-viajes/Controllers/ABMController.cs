@@ -5,7 +5,7 @@ using MySqlConnector;
 
 namespace DG_viajes.Controllers;
 
-// [Authorize]   // ← activar cuando esté el login
+ [Authorize]   
 public abstract class ABMController<T> : Controller where T : new()
 {
     protected readonly IRepositorio<T> repositorio;
@@ -136,7 +136,7 @@ public abstract class ABMController<T> : Controller where T : new()
     // ELIMINAR: confirma y da de baja (solo Administrador)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    // [Authorize(Roles = "Administrador")]   // ← activar cuando esté el login
+     [Authorize(Roles = "Administrador")]   
     public virtual IActionResult EliminarConfirmado(int id)
     {
         try
