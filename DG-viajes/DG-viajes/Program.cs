@@ -20,6 +20,8 @@ builder.Services.AddScoped<IRepositorioDestino>(
     provider => new RepositorioDestino(connectionString!));
 builder.Services.AddScoped<IRepositorioUsuario>(
     provider => new RepositorioUsuario(connectionString!));
+builder.Services.AddScoped<IRepositorioCliente>(
+    provider => new RepositorioCliente(connectionString!)); 
 
 //contrasenas
 

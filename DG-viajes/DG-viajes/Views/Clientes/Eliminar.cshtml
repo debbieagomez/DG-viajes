@@ -1,0 +1,19 @@
+@model DG_viajes.Models.Cliente
+
+<h2>Desactivar cliente</h2>
+
+<div class="alert alert-warning">
+    ¿Seguro que querés desactivar este cliente? No se borra: queda inactivo y deja de aparecer en nuevas reservas.
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">DNI</dt>       <dd class="col-sm-9">@Model.Dni</dd>
+    <dt class="col-sm-3">Apellido y Nombre</dt>  <dd class="col-sm-9">@Model.Apellido, @Model.Nombre</dd>
+    <dt class="col-sm-3">Email</dt>     <dd class="col-sm-9">@(Model.Email ?? "-")</dd>
+</dl>
+
+<form asp-action="EliminarConfirmado" method="post">
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Desactivar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
