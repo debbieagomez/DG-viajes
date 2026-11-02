@@ -1,0 +1,18 @@
+@model DG_viajes.Models.TipoHospedaje
+
+@{
+    ViewData["Title"] = "Nuevo tipo de hospedaje";
+}
+
+<div class="container mt-4" style="max-width: 600px">
+    <h1 class="h3 mb-3">Nuevo tipo de hospedaje</h1>
+    <form asp-action="Crear" method="post">
+        <div class="mb-3">
+            <label asp-for="Nombre" class="form-label">Nombre</label>
+            <input asp-for="Nombre" class="form-control" maxlength="50" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>

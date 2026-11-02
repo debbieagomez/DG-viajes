@@ -22,6 +22,10 @@ builder.Services.AddScoped<IRepositorioUsuario>(
     provider => new RepositorioUsuario(connectionString!));
 builder.Services.AddScoped<IRepositorioCliente>(
     provider => new RepositorioCliente(connectionString!)); 
+builder.Services.AddScoped<IRepositorioTipoHospedaje>(
+    provider => new RepositorioTipoHospedaje(connectionString!));
+builder.Services.AddScoped<IRepositorioPago>(
+    provider => new RepositorioPago(connectionString!));
 
 //contrasenas
 

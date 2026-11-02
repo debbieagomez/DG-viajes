@@ -231,7 +231,7 @@ public class RepositorioReserva
 
     // ======================= Confirmar / cancelar =======================
     // Devuelve null si salió bien, o el mensaje de error.
-    public string? CambiarEstado(int id, string nuevo, int usuarioId)
+        public string? CambiarEstado(int id, string nuevo, int usuarioId)
     {
         using var c = new MySqlConnection(cs);
         c.Open();
@@ -247,19 +247,30 @@ public class RepositorioReserva
         if (nuevo == "Cancelada" && actual == "Cancelada") return "La reserva ya está cancelada.";
         if (nuevo != "Confirmada" && nuevo != "Cancelada") return "Estado no válido.";
 
+        var ahora = DateTime.Now;
         using (var u = new MySqlCommand(
             "UPDATE reserva SET estado = @e, modificado_por = @u, modificado_en = @f WHERE id = @id", c, tx))
         {
             u.Parameters.AddWithValue("@e", nuevo);
             u.Parameters.AddWithValue("@u", usuarioId);
-            u.Parameters.AddWithValue("@f", DateTime.Now);
+            u.Parameters.AddWithValue("@f", ahora);
             u.Parameters.AddWithValue("@id", id);
             u.ExecuteNonQuery();
+        }
+        if (nuevo == "Cancelada")
+        {
+            // Al cancelar se anulan los pagos vigentes, con el usuario que cancela y la misma fecha y hora.
+            using var a = new MySqlCommand(@"UPDATE pago SET anulado_por = @u, anulado_en = @f
+                WHERE reserva_id = @id AND anulado_en IS NULL", c, tx);
+            a.Parameters.AddWithValue("@u", usuarioId);
+            a.Parameters.AddWithValue("@f", ahora);
+            a.Parameters.AddWithValue("@id", id);
+            a.ExecuteNonQuery();
         }
         tx.Commit();
         return null;
     }
-
+    
     // ======================= Listado y detalle =======================
     public Paginado<ReservaFila> Listar(ReservaFiltro f)
     {

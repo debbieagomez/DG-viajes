@@ -57,7 +57,7 @@ public class ReservasController : Controller
     public IActionResult Confirmar(int id) => Cambiar(id, "Confirmada", "Reserva confirmada.");
 
     [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Cancelar(int id) => Cambiar(id, "Cancelada", "Reserva cancelada.");
+        public IActionResult Cancelar(int id) => Cambiar(id, "Cancelada", "Reserva cancelada. Sus pagos vigentes quedaron anulados.");
 
     private IActionResult Cambiar(int id, string estado, string mensajeOk)
     {

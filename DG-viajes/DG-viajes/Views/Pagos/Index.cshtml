@@ -1,0 +1,155 @@
+@model DG_viajes.ViewModels.PagosVm
+@using System.Globalization
+@using DG_viajes.ViewModels
+@{
+    ViewData["Title"] = "Pagos de la reserva " + Model.Resumen.ReservaId;
+    var es = new CultureInfo("es-AR");
+    var res = Model.Resumen;
+    bool esAdmin = User.IsInRole("Administrador");
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Pagos de la reserva @res.ReservaId</h1>
+        <a class="btn btn-outline-secondary" asp-controller="Reservas" asp-action="Detalle" asp-route-id="@res.ReservaId">Volver a la reserva</a>
+    </div>
+
+    @if (TempData["Mensaje"] is string mensaje)
+    {
+        <div class="alert alert-success py-2" role="status">@mensaje</div>
+    }
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger py-2" role="alert">@error</div>
+    }
+
+    <div class="card mb-3"><div class="card-body">
+        <div class="mb-2">
+            <strong>@res.Cliente</strong> (DNI @res.Dni) &middot; @res.Paquete &middot;
+            <span class="badge @(res.Estado == "Confirmada" ? "text-bg-success" : res.Estado == "Pendiente" ? "text-bg-warning" : "text-bg-secondary")">@res.Estado</span>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Importe de la reserva<div class="fs-5">@res.PrecioTotal.ToString("C0", es)</div></div>
+            <div class="col-md-4">Total pagado<div class="fs-5">@res.Pagado.ToString("C0", es)</div></div>
+            <div class="col-md-4">Saldo pendiente<div class="fs-5">@res.Saldo.ToString("C0", es)</div></div>
+        </div>
+    </div></div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@e.ErrorMessage</div>
+            }
+        </div>
+    }
+
+    @if (Model.PuedeRegistrar)
+    {
+        <div class="card mb-4"><div class="card-body">
+            <h2 class="h5">Registrar pago</h2>
+            <form method="post" asp-action="Registrar" class="row g-3">
+                <input type="hidden" name="ReservaId" value="@res.ReservaId">
+                <div class="col-md-3">
+                    <label class="form-label" for="Tipo">Tipo</label>
+                    <select class="form-select" id="Tipo" name="Tipo" data-saldo="@decimal.Truncate(res.Saldo).ToString("0")">
+                        @foreach (var t in PagosVm.Tipos)
+                        {
+                            <option value="@t" selected="@(Model.Nuevo.Tipo == t)">@t</option>
+                        }
+                    </select>
+                    <div class="form-text">Total cancela el saldo. Seña y Parcial deben ser menores.</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="Fecha">Fecha</label>
+                    <input class="form-control" type="date" id="Fecha" name="Fecha" value="@Model.Nuevo.Fecha.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="Importe">Importe (pesos)</label>
+                    <input class="form-control" type="number" min="1" step="1" id="Importe" name="Importe"
+                           value="@(Model.Nuevo.Importe > 0 ? decimal.Truncate(Model.Nuevo.Importe).ToString("0") : "")">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="MedioPago">Medio de pago</label>
+                    <select class="form-select" id="MedioPago" name="MedioPago">
+                        <option value="">Elegí un medio</option>
+                        @foreach (var m in PagosVm.Medios)
+                        {
+                            <option value="@m" selected="@(Model.Nuevo.MedioPago == m)">@m</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Registrar pago</button>
+                </div>
+            </form>
+        </div></div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            @(res.Estado == "Cancelada" ? "La reserva está cancelada: no puede recibir pagos." : "La reserva no tiene saldo pendiente.")
+        </div>
+    }
+
+    <h2 class="h5">Historial de pagos</h2>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Fecha</th><th>Tipo</th><th>Medio</th><th class="text-end">Importe</th><th>Estado</th>
+                    @if (esAdmin) { <th>Auditoría</th> }
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Pagos)
+                {
+                    <tr class="@(p.Anulado ? "text-muted" : "")">
+                        <td>@p.Fecha.ToString("dd/MM/yyyy")</td>
+                        <td>@p.Tipo</td>
+                        <td>@p.MedioPago</td>
+                        <td class="text-end">@(p.Anulado ? Html.Raw("<s>" + p.Importe.ToString("C0", es) + "</s>") : Html.Raw(p.Importe.ToString("C0", es)))</td>
+                        <td><span class="badge @(p.Anulado ? "text-bg-secondary" : "text-bg-success")">@(p.Anulado ? "Anulado" : "Vigente")</span></td>
+                        @if (esAdmin)
+                        {
+                            <td class="small">
+                                Registrado por @p.CreadoPor el @p.CreadoEn.ToString("dd/MM/yyyy HH:mm")
+                                @if (p.Anulado) { <div>Anulado por @p.AnuladoPor el @p.AnuladoEn!.Value.ToString("dd/MM/yyyy HH:mm")</div> }
+                            </td>
+                        }
+                        <td class="text-end">
+                            @if (!p.Anulado)
+                            {
+                                <form method="post" asp-action="Anular" class="d-inline"
+                                      onsubmit="return confirm('¿Anular este pago? No se puede deshacer.');">
+                                    <input type="hidden" name="id" value="@p.Id">
+                                    <input type="hidden" name="reservaId" value="@res.ReservaId">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Anular</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (Model.Pagos.Count == 0)
+                {
+                    <tr><td colspan="@(esAdmin ? 7 : 6)" class="text-center text-muted py-4">Esta reserva todavía no tiene pagos.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const tipo = document.getElementById('Tipo');
+            const importe = document.getElementById('Importe');
+            if (!tipo || !importe) return;
+            tipo.addEventListener('change', function () {
+                if (tipo.value === 'Total') importe.value = tipo.dataset.saldo;
+            });
+        })();
+    </script>
+}

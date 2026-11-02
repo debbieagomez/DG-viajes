@@ -89,7 +89,7 @@
     @if (estado != "Cancelada")
     {
         <form method="post" asp-action="Cancelar" asp-route-id="@Model.Reserva.Id"
-              onsubmit="return confirm('¿Cancelar esta reserva? Se liberan las plazas y no se puede revertir.');">
+              onsubmit="return confirm('¿Cancelar esta reserva? Se liberan las plazas, se anulan sus pagos y no se puede revertir.');">
             <button class="btn btn-outline-danger" type="submit">Cancelar reserva</button>
         </form>
     }

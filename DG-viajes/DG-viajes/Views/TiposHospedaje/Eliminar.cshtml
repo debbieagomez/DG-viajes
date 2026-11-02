@@ -1,0 +1,18 @@
+@model DG_viajes.Models.TipoHospedaje
+
+@{
+    ViewData["Title"] = "Eliminar tipo de hospedaje";
+}
+
+<div class="container mt-4" style="max-width: 600px">
+    <h1 class="h3 mb-3">Eliminar tipo de hospedaje</h1>
+    <div class="alert alert-warning">
+        ¿Querés eliminar el tipo <strong>@Model.Nombre</strong>? Esta acción no se puede deshacer.
+        Si hay hospedajes de este tipo, no se va a poder eliminar.
+    </div>
+    <form asp-action="EliminarConfirmado" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Eliminar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>
