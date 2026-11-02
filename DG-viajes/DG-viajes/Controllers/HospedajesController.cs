@@ -2,9 +2,11 @@ using DG_viajes.Models;
 using DG_viajes.Repositories;
 using DG_viajes.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DG_viajes.Controllers;
 
+[Authorize]
 public class HospedajesController : Controller
 {
     private static readonly string[] Extensiones = { ".jpg", ".jpeg", ".png", ".webp" };
@@ -55,7 +57,7 @@ public class HospedajesController : Controller
         return Json(new { ok = true });
     }
 
-    // TODO: restringir a administradores con [Authorize(Roles = "Administrador")] cuando esté el login.
+ [Authorize(Roles = "Administrador")] 
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult Eliminar(int id)
     {

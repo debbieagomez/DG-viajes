@@ -69,7 +69,9 @@
     </div>
 </div></div>
 
-@* TODO: mostrar la auditoría solo a administradores cuando exista el login. *@
+
+@if (User.IsInRole("Administrador"))
+{
 <div class="card mb-3"><div class="card-body">
     <h2 class="h5">Auditoría</h2>
     <div>Creada por @Model.CreadoPor el @Model.Reserva.CreadoEn.ToString("dd/MM/yyyy HH:mm")</div>
@@ -94,4 +96,4 @@
             <button class="btn btn-outline-danger" type="submit">Cancelar reserva</button>
         </form>
     }
-</div>
+</div>}

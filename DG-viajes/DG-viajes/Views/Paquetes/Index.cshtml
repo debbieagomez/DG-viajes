@@ -116,12 +116,15 @@
                             <input type="hidden" name="volver" value="@volver">
                             <button class="btn btn-sm btn-outline-warning" type="submit">@(p.Estado == "Disponible" ? "Suspender" : "Reactivar")</button>
                         </form>
+                        @if (User.IsInRole("Administrador"))
+                        {
                         <form method="post" asp-action="Eliminar" class="d-inline"
                               onsubmit="return confirm('¿Eliminar este paquete? Esta acción no se puede deshacer.');">
                             <input type="hidden" name="id" value="@p.Id">
                             <input type="hidden" name="volver" value="@volver">
                             <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
                         </form>
+                        }
                     </td>
                 </tr>
             }

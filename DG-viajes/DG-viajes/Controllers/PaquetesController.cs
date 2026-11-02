@@ -2,9 +2,11 @@ using DG_viajes.Models;
 using DG_viajes.Repositories;
 using DG_viajes.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DG_viajes.Controllers;
 
+[Authorize]
 public class PaquetesController : Controller
 {
     private readonly RepositorioPaquete repo;
@@ -90,7 +92,7 @@ public class PaquetesController : Controller
         return Volver(volver);
     }
 
-    // TODO: restringir a administradores con [Authorize(Roles = "Administrador")] cuando esté el login.
+[Authorize(Roles = "Administrador")]
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult Eliminar(int id, string? volver)
     {

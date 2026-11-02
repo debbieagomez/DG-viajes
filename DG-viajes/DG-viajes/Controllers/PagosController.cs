@@ -3,10 +3,11 @@ using DG_viajes.Models;
 using DG_viajes.Repositories;
 using DG_viajes.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DG_viajes.Controllers;
 
-// [Authorize]   // ← activar cuando esté el login
+[Authorize] 
 public class PagosController : Controller
 {
     private readonly IRepositorioPago repositorio;

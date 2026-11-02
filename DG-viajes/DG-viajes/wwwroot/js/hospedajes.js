@@ -8,6 +8,13 @@
     async function api(url, opciones = {}) {
         const headers = Object.assign({ RequestVerificationToken: token }, opciones.headers || {});
         const resp = await fetch(url, Object.assign({}, opciones, { headers, credentials: 'same-origin' }));
+                // Sesión vencida o sin permiso: el servidor redirige a /Cuenta/...
+        if (resp.redirected && resp.url.includes('/Cuenta/')) {
+            window.location.href = resp.url.includes('/Cuenta/Login')
+                ? '/Cuenta/Login?returnUrl=' + encodeURIComponent(window.location.pathname)
+                : resp.url;
+            return new Promise(function () { });
+        }
         let datos = null;
         try { datos = await resp.json(); } catch (e) { /* respuesta sin cuerpo */ }
         if (!resp.ok) {
@@ -31,7 +38,8 @@
                 filtro: { buscar: '', destinoId: '', tipoId: '', estado: '' },
                 mensaje: '', errorListado: '', temporizador: null, temporizadorMsg: null,
                 form: { abierto: false, guardando: false, errores: [], datos: {} },
-                panelFotos: { abierto: false, hospedaje: {}, fotos: [], errores: [], subiendo: false }
+                panelFotos: { abierto: false, hospedaje: {}, fotos: [], errores: [], subiendo: false },
+                esAdmin: document.getElementById('esAdmin').value === '1',
             };
         },
         computed: {

@@ -3,9 +3,11 @@ using System.Text.RegularExpressions;
 using DG_viajes.Repositories;
 using DG_viajes.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DG_viajes.Controllers;
 
+[Authorize]
 public class ReservasController : Controller
 {
     private readonly RepositorioReserva repo;

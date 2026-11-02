@@ -1,0 +1,57 @@
+@model DG_viajes.Models.Usuario
+
+@{
+    ViewData["Title"] = "Editar usuario";
+}
+
+<div class="container mt-4" style="max-width: 640px">
+    <h1 class="h3 mb-3">Editar usuario</h1>
+    <form asp-action="Editar" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email</label>
+            <input asp-for="Email" class="form-control" maxlength="150" autocomplete="off" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Nombre" class="form-label">Nombre</label>
+                <input asp-for="Nombre" class="form-control" maxlength="100" />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label asp-for="Apellido" class="form-label">Apellido</label>
+                <input asp-for="Apellido" class="form-control" maxlength="100" />
+                <span asp-validation-for="Apellido" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Rol" class="form-label">Rol</label>
+            <select asp-for="Rol" class="form-select">
+                <option value="Empleado">Empleado</option>
+                <option value="Administrador">Administrador</option>
+            </select>
+            <span asp-validation-for="Rol" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="Password" class="form-label">Contraseña nueva</label>
+                <input type="password" id="Password" name="Password" class="form-control" autocomplete="new-password" />
+                <div class="form-text">Dejala vacía para conservar la actual.</div>
+                <span class="text-danger">@Html.ValidationMessage("Password")</span>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="ConfirmarPassword" class="form-label">Repetir contraseña nueva</label>
+                <input type="password" id="ConfirmarPassword" name="ConfirmarPassword" class="form-control" autocomplete="new-password" />
+                <span class="text-danger">@Html.ValidationMessage("ConfirmarPassword")</span>
+            </div>
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="Activo" class="form-check-input" />
+            <label asp-for="Activo" class="form-check-label">Usuario activo (puede iniciar sesión)</label>
+            <span asp-validation-for="Activo" class="text-danger d-block"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>

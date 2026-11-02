@@ -5,6 +5,7 @@
 <style>[v-cloak] { display: none; } .thumb { width: 96px; height: 72px; object-fit: cover; border-radius: 4px; }</style>
 
 @Html.AntiForgeryToken()
+  <input type="hidden" id="esAdmin" value="@(User.IsInRole("Administrador") ? "1" : "0")">
 
 <div id="app" v-cloak>
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -68,7 +69,7 @@
                         <button class="btn btn-sm btn-outline-secondary" v-on:click="abrirFotos(h)">Fotos</button>
                         <button class="btn btn-sm btn-outline-primary" v-on:click="editar(h)">Editar</button>
                         <button class="btn btn-sm btn-outline-warning" v-on:click="cambiarActivo(h)">{{ h.activo ? 'Desactivar' : 'Activar' }}</button>
-                        <button class="btn btn-sm btn-outline-danger" v-on:click="eliminar(h)">Eliminar</button>
+                        <button class="btn btn-sm btn-outline-danger" v-on:click="eliminar(h)" v-if="esAdmin">Eliminar</button>
                     </td>
                 </tr>
                 <tr v-if="!cargando && items.length === 0">

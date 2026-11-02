@@ -19,7 +19,7 @@ public class AuthApiController : ControllerBase
     private readonly RepositorioUsuarioApi repo;
     private readonly GeneradorJwt jwt;
     private readonly IWebHostEnvironment env;
-    private readonly IPasswordHasher<Usuario> hasher; // el mismo que registró Deborah en Program.cs
+    private readonly IPasswordHasher<Usuario> hasher;
 
     public AuthApiController(IConfiguration config, IWebHostEnvironment env, IPasswordHasher<Usuario> hasher)
     {
@@ -50,17 +50,6 @@ public class AuthApiController : ControllerBase
             usuario = new { u.Id, u.Email, u.Nombre, u.Apellido, u.Rol }
         });
     }
-
-    // Solo en Development. Pone la contraseña "Test1234" a los usuarios de prueba que todavía tienen el hash pendiente.
-    // TODO: borrar este endpoint antes de la entrega final.
-    [HttpPost("dev/inicializar-passwords")]
-    public IActionResult InicializarPasswords()
-    {
-        if (!env.IsDevelopment()) return NotFound();
-        int cantidad = repo.InicializarPasswords(() => hasher.HashPassword(new Usuario(), "Test1234"));
-        return Ok(new { actualizados = cantidad, password = "Test1234" });
-    }
-
     private bool PasswordValida(Usuario u, string password)
     {
         try

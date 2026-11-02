@@ -1,0 +1,19 @@
+@model DG_viajes.Models.Usuario
+
+@{
+    ViewData["Title"] = "Desactivar usuario";
+}
+
+<div class="container mt-4" style="max-width: 640px">
+    <h1 class="h3 mb-3">Desactivar usuario</h1>
+    <div class="alert alert-warning">
+        ¿Querés desactivar a <strong>@Model.Apellido, @Model.Nombre</strong> (@Model.Email)?
+        No va a poder iniciar sesión, pero se conserva todo lo que registró (reservas y pagos).
+        Para volver a activarlo, editá el usuario.
+    </div>
+    <form asp-action="EliminarConfirmado" method="post">
+        <input type="hidden" name="id" value="@Model.Id" />
+        <button type="submit" class="btn btn-danger">Desactivar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+    </form>
+</div>
