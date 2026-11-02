@@ -80,6 +80,7 @@
 </div></div>
 
 <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" asp-controller="Pagos" asp-action="Index" asp-route-reservaId="@Model.Reserva.Id">Pagos</a>
     @if (estado == "Pendiente")
     {
         <form method="post" asp-action="Confirmar" asp-route-id="@Model.Reserva.Id">

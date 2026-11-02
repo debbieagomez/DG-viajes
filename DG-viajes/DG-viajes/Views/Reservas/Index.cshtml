@@ -73,7 +73,10 @@
                     <td>
                         <span class="badge @(x.Estado == "Confirmada" ? "text-bg-success" : x.Estado == "Pendiente" ? "text-bg-warning" : "text-bg-secondary")">@x.Estado</span>
                     </td>
-                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="Detalle" asp-route-id="@x.Id">Ver</a></td>
+                    <td class="text-end text-nowrap">
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Detalle" asp-route-id="@x.Id">Ver</a>
+                        <a class="btn btn-sm btn-outline-secondary" asp-controller="Pagos" asp-action="Index" asp-route-reservaId="@x.Id">Pagos</a>
+                    </td>
                 </tr>
             }
             @if (r.Items.Count == 0)
