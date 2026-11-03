@@ -29,3 +29,101 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+/* ===== Paleta DG Viajes ===== */
+:root {
+    --dg-primario: #04acda;      
+    --dg-primario-oscuro:  #155e75;
+    --dg-acento: #013118;        
+    --dg-fondo: #f5f7fa;
+}
+
+body {
+    background-color: var(--dg-fondo);
+}
+
+/* Barra de navegación */
+.navbar {
+    background-color: var(--dg-primario) !important;
+}
+.navbar .nav-link,
+.navbar .navbar-brand {
+    color: white !important;
+}
+.navbar .nav-link:hover {
+    color: var(--dg-acento) !important;
+}
+
+/* Títulos */
+h1, h2 {
+    color: var(--dg-primario-oscuro);
+    font-weight: 600;
+}
+
+/* Botón principal */
+.btn-primary {
+    background-color: var(--dg-primario);
+    border-color: var(--dg-primario);
+}
+.btn-primary:hover {
+    background-color: var(--dg-primario-oscuro-);
+    border-color: var(--dg-primario-oscuro);
+}
+
+/* Tablas como "tarjeta" */
+.table-responsive {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 0.5rem;
+}
+.table thead th {
+    color: var(--dg-primario-oscuro);
+    border-bottom: 2px solid var(--dg-acento);
+}
+
+/* ===== Página de inicio ===== */
+.hero {
+    background: linear-gradient(135deg, var(--dg-primario), var(--dg-primario-oscuro));
+    color: white;
+    padding: 3rem 1rem;
+    border-radius: 16px;
+    margin-top: 1rem;
+}
+.hero h1 {
+    color: white;
+    font-size: 3rem;
+    font-weight: 700;
+}
+.hero .saludo {
+    color: var(--dg-acento);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Tarjetas de acceso */
+.acceso {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.acceso:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+.acceso .icono {
+    font-size: 2.5rem;
+}
+.acceso h3 {
+    color: var(--dg-primario);
+    margin-top: 0.5rem;
+}
+.acceso p {
+    color: #6b7280;
+    margin: 0;
+}

@@ -1,8 +1,46 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using System.Security.Claims
+@{
+    ViewData["Title"] = "Inicio";
+    var nombre = User.FindFirst(ClaimTypes.GivenName)?.Value;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<section class="hero text-center">
+    <h1>DG Viajes</h1>
+    <p class="lead">Gestión de clientes, paquetes y reservas de la agencia</p>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <p class="saludo">¡Hola, @nombre! ¿Qué querés hacer hoy?</p>
+    }
+    else
+    {
+        <a asp-controller="Cuenta" asp-action="Login" class="btn btn-light btn-lg">Ingresar</a>
+    }
+</section>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <div class="row g-4 mt-2">
+        <div class="col-md-4">
+            <a asp-controller="Reservas" asp-action="Index" class="acceso">
+                <span class="icono">🧳</span>
+                <h3>Reservas</h3>
+                <p>Crear y seguir reservas</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-controller="Clientes" asp-action="Index" class="acceso">
+                <span class="icono">👥</span>
+                <h3>Clientes</h3>
+                <p>Alta y búsqueda de clientes</p>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-controller="Paquetes" asp-action="Index" class="acceso">
+                <span class="icono">🌎</span>
+                <h3>Paquetes</h3>
+                <p>Paquetes turísticos disponibles</p>
+            </a>
+        </div>
+    </div>
+}
