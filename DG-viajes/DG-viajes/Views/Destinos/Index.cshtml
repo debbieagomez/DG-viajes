@@ -65,7 +65,7 @@
                                 <a asp-action="Editar" asp-route-id="@destino.Id" class="btn btn-sm btn-outline-primary">Editar</a>
                                 @if (User.IsInRole("Administrador"))
                                 {
-                                    <a asp-action="Eliminar" asp-route-id="@destino.Id" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                                    <a asp-action="Eliminar" asp-route-id="@destino.Id" class="btn btn-sm btn-outline-danger">Desactivar</a>
                                 }
                             </td>
                         </tr>
