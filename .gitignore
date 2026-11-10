@@ -427,3 +427,7 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Archivos que genera Postman al conectarse a la carpeta
+.postman/
+postman/
